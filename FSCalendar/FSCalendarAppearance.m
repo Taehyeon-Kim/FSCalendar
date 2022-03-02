@@ -37,7 +37,7 @@
         
         _headerTitleColor = FSCalendarStandardTitleTextColor;
         _headerSeparatorColor = FSCalendarStandardLineColor;
-        _headerDateFormat = @"MMMM yyyy";
+        _headerDateFormat = @"YYYY MM";
         _headerMinimumDissolvedAlpha = 0.2;
         _headerTitleOffset = CGPointZero;
         _headerTitleAlignment = NSTextAlignmentCenter;
