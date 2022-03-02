@@ -23,9 +23,16 @@ class DIYCalendarCell: FSCalendarCell {
     
     weak var circleImageView: UIImageView!
     weak var selectionLayer: CAShapeLayer!
+    weak var connectionLayer: CAShapeLayer!
     
     var selectionType: SelectionType = .none {
         didSet {
+            if selectionType == .none {
+                self.selectionLayer.opacity = 0
+                self.connectionLayer.opacity = 0
+                self.selectionLayer.isHidden = true
+                self.connectionLayer.isHidden = true
+            }
             setNeedsLayout()
         }
     }
@@ -37,52 +44,82 @@ class DIYCalendarCell: FSCalendarCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        let circleImageView = UIImageView(image: UIImage(named: "circle")!)
-        self.contentView.insertSubview(circleImageView, at: 0)
-        self.circleImageView = circleImageView
-        
         let selectionLayer = CAShapeLayer()
-        selectionLayer.fillColor = UIColor.black.cgColor
-        selectionLayer.actions = ["hidden": NSNull()]
+        selectionLayer.fillColor = UIColor(red: 228 / 255, green: 246 / 255, blue: 246 / 255, alpha: 1.0).cgColor
+        selectionLayer.opacity = 0
         self.contentView.layer.insertSublayer(selectionLayer, below: self.titleLabel!.layer)
         self.selectionLayer = selectionLayer
+        self.selectionLayer.isHidden = true
+        
+        let connectionLayer = CAShapeLayer()
+        connectionLayer.fillColor = UIColor(red: 228 / 255, green: 246 / 255, blue: 246 / 255, alpha: 1.0).cgColor
+        connectionLayer.opacity = 0
+        self.contentView.layer.insertSublayer(connectionLayer, below: self.titleLabel.layer)
+        self.connectionLayer = connectionLayer
+        self.connectionLayer.isHidden = true
         
         self.shapeLayer.isHidden = true
-        
-        let view = UIView(frame: self.bounds)
-        view.backgroundColor = UIColor.lightGray.withAlphaComponent(0.12)
-        self.backgroundView = view;
-        
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.selectionLayer?.opacity = 0
+        self.connectionLayer?.opacity = 0
+        self.contentView.layer.removeAnimation(forKey: "opacity")
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        self.circleImageView.frame = self.contentView.bounds
-        self.backgroundView?.frame = self.bounds.insetBy(dx: 1, dy: 1)
-        self.selectionLayer.frame = self.contentView.bounds
+        
+        self.selectionLayer.frame = self.contentView.bounds.insetBy(dx: 0, dy: 4)
+        self.connectionLayer.frame = self.contentView.bounds.insetBy(dx: 0, dy: 4)
+        
+        guard var connectionRect = connectionLayer?.bounds else {
+            return
+        }
+        connectionRect.size.height = connectionRect.height * 5 / 6
         
         if selectionType == .middle {
-            self.selectionLayer.path = UIBezierPath(rect: self.selectionLayer.bounds).cgPath
+            self.connectionLayer.isHidden = false
+            self.connectionLayer.opacity = 1
+            self.connectionLayer.path = UIBezierPath(rect: connectionRect).cgPath
         }
+        
         else if selectionType == .leftBorder {
-            self.selectionLayer.path = UIBezierPath(roundedRect: self.selectionLayer.bounds, byRoundingCorners: [.topLeft, .bottomLeft], cornerRadii: CGSize(width: self.selectionLayer.frame.width / 2, height: self.selectionLayer.frame.width / 2)).cgPath
+            self.connectionLayer.isHidden = false
+            self.connectionLayer.opacity = 1
+            var rect = connectionRect
+            rect.origin.x = connectionRect.width / 2
+            rect.size.width = connectionRect.width / 2
+            self.connectionLayer.path = UIBezierPath(rect: rect).cgPath
         }
+        
         else if selectionType == .rightBorder {
-            self.selectionLayer.path = UIBezierPath(roundedRect: self.selectionLayer.bounds, byRoundingCorners: [.topRight, .bottomRight], cornerRadii: CGSize(width: self.selectionLayer.frame.width / 2, height: self.selectionLayer.frame.width / 2)).cgPath
+            self.connectionLayer.isHidden = false
+            self.connectionLayer.opacity = 1
+            var rect = connectionRect
+            rect.size.width = connectionRect.width / 2
+            self.connectionLayer.path = UIBezierPath(rect: rect).cgPath
         }
-        else if selectionType == .single {
-            let diameter: CGFloat = min(self.selectionLayer.frame.height, self.selectionLayer.frame.width)
-            self.selectionLayer.path = UIBezierPath(ovalIn: CGRect(x: self.contentView.frame.width / 2 - diameter / 2, y: self.contentView.frame.height / 2 - diameter / 2, width: diameter, height: diameter)).cgPath
+        
+        if selectionType == .single || selectionType == .leftBorder || selectionType == .rightBorder {
+            self.selectionLayer.isHidden = false
+            self.selectionLayer.opacity = 1
+            let diameter: CGFloat = min(connectionRect.height, connectionRect.width)
+            let rect = CGRect(
+                x: self.contentView.frame.width / 2 - diameter / 2,
+                y: 0,
+                width: diameter,
+                height: diameter)
+            self.selectionLayer?.path = UIBezierPath(ovalIn: rect).cgPath
         }
     }
     
     override func configureAppearance() {
         super.configureAppearance()
-        // Override the build-in appearance configuration
-        if self.isPlaceholder {
-            self.eventIndicator.isHidden = true
-            self.titleLabel.textColor = UIColor.lightGray
-        }
+
+        self.titleLabel.textColor = UIColor.black
+        self.eventIndicator.isHidden = true
     }
     
 }

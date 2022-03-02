@@ -25,29 +25,42 @@ class DIYExampleViewController: UIViewController, FSCalendarDataSource, FSCalend
     override func loadView() {
         
         let view = UIView(frame: UIScreen.main.bounds)
-        view.backgroundColor = UIColor.groupTableViewBackground
+        view.backgroundColor = .white
         self.view = view
         
-        let height: CGFloat = UIDevice.current.model.hasPrefix("iPad") ? 400 : 300
-        let calendar = FSCalendar(frame: CGRect(x: 0, y: self.navigationController!.navigationBar.frame.maxY, width: view.frame.size.width, height: height))
+//        let height: CGFloat = UIDevice.current.model.hasPrefix("iPad") ? 400 : 300
+        let calendar = FSCalendar(frame: CGRect(x: 0, y: self.navigationController!.navigationBar.frame.maxY, width: view.frame.size.width, height: 440))
         calendar.dataSource = self
         calendar.delegate = self
         calendar.allowsMultipleSelection = true
+        calendar.scrollEnabled = false
+        calendar.pagingEnabled = false
         view.addSubview(calendar)
         self.calendar = calendar
         
-        calendar.calendarHeaderView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.1)
-        calendar.calendarWeekdayView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.1)
-        calendar.appearance.eventSelectionColor = UIColor.white
+//        calendar.calendarHeaderView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.1)
+//        calendar.calendarWeekdayView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.1)
+//        calendar.appearance.eventSelectionColor = UIColor.white
         calendar.appearance.eventOffset = CGPoint(x: 0, y: -7)
+        
+        // header - 3월 2022 이 부분 의미
+        calendar.appearance.headerTitleFont = .systemFont(ofSize: 18, weight: .semibold)
+        calendar.appearance.headerTitleColor = UIColor(red: 31/255, green: 32/255, blue: 34/255, alpha: 1.0)
+        calendar.appearance.weekdayTextColor = UIColor(red: 132/255, green: 140/255, blue: 146/255, alpha: 1.0)
+        
+//        calendar.headerHeight = 0
+        calendar.weekdayHeight = 22
+        calendar.rowHeight = 58
+        
+        
         calendar.today = nil // Hide the today circle
         calendar.register(DIYCalendarCell.self, forCellReuseIdentifier: "cell")
 //        calendar.clipsToBounds = true // Remove top/bottom line
         
-        calendar.swipeToChooseGesture.isEnabled = true // Swipe-To-Choose
+        calendar.swipeToChooseGesture.isEnabled = false // Swipe-To-Choose
         
-        let scopeGesture = UIPanGestureRecognizer(target: calendar, action: #selector(calendar.handleScopeGesture(_:)));
-        calendar.addGestureRecognizer(scopeGesture)
+//        let scopeGesture = UIPanGestureRecognizer(target: calendar, action: #selector(calendar.handleScopeGesture(_:)));
+//        calendar.addGestureRecognizer(scopeGesture)
         
         
         let label = UILabel(frame: CGRect(x: 0, y: calendar.frame.maxY + 10, width: self.view.frame.size.width, height: 50))
@@ -84,7 +97,6 @@ class DIYExampleViewController: UIViewController, FSCalendarDataSource, FSCalend
         }
         // For UITest
         self.calendar.accessibilityIdentifier = "calendar"
-        
     }
     
     // MARK:- FSCalendarDataSource
@@ -98,12 +110,12 @@ class DIYExampleViewController: UIViewController, FSCalendarDataSource, FSCalend
         self.configure(cell: cell, for: date, at: position)
     }
     
-    func calendar(_ calendar: FSCalendar, titleFor date: Date) -> String? {
-        if self.gregorian.isDateInToday(date) {
-            return "今"
-        }
-        return nil
-    }
+//    func calendar(_ calendar: FSCalendar, titleFor date: Date) -> String? {
+//        if self.gregorian.isDateInToday(date) {
+//            return "今"
+//        }
+//        return nil
+//    }
     
     func calendar(_ calendar: FSCalendar, numberOfEventsFor date: Date) -> Int {
         return 2
@@ -154,8 +166,6 @@ class DIYExampleViewController: UIViewController, FSCalendarDataSource, FSCalend
     private func configure(cell: FSCalendarCell, for date: Date, at position: FSCalendarMonthPosition) {
         
         let diyCell = (cell as! DIYCalendarCell)
-        // Custom today circle
-        diyCell.circleImageView.isHidden = !self.gregorian.isDateInToday(date)
         // Configure selection layer
         if position == .current {
             
@@ -190,7 +200,6 @@ class DIYExampleViewController: UIViewController, FSCalendarDataSource, FSCalend
             diyCell.selectionType = selectionType
             
         } else {
-            diyCell.circleImageView.isHidden = true
             diyCell.selectionLayer.isHidden = true
         }
     }
